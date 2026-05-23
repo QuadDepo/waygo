@@ -51,6 +51,15 @@ export class WaygoApiError extends WaygoError {
   }
 }
 
+const AUTH_DETAIL_PATTERN = /api key (not valid|expired|invalid)|permission denied|not authorized/i;
+
+export function hintForApiError(status: number | undefined, detail: string): string | undefined {
+  if (AUTH_DETAIL_PATTERN.test(detail)) {
+    return hintForApiStatus(401);
+  }
+  return hintForApiStatus(status);
+}
+
 export function hintForApiStatus(status?: number): string | undefined {
   if (status === 401 || status === 403) {
     return "Check that GOOGLE_MAPS_API_KEY is set and the Routes + Places (New) APIs are enabled for it.";

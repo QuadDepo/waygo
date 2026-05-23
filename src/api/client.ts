@@ -1,6 +1,6 @@
 import { $fetch, FetchError } from "ofetch";
 
-import { WaygoApiError, hintForApiStatus } from "../errors";
+import { WaygoApiError, hintForApiError } from "../errors";
 
 const GOOGLE_BASE_URLS = {
   places: "https://places.googleapis.com",
@@ -60,7 +60,7 @@ function toWaygoApiError(service: GoogleService, error: unknown): WaygoApiError 
     return new WaygoApiError(message, {
       service,
       status,
-      hint: hintForApiStatus(status),
+      hint: hintForApiError(status, detail),
       cause: error,
     });
   }
