@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { defineCommand, runCommand, showUsage } from "citty";
 
-import { initCommand, placesCommand, tripCommand } from "./commands";
+import { aliasCommand, initCommand, placesCommand, tripCommand } from "./commands";
 import { WaygoCancelledError, WaygoError } from "./errors";
 import { printJsonError } from "./output";
 import { isJsonMode } from "./runtime";
@@ -56,6 +56,7 @@ const main = defineCommand({
     places: placesCommand,
     p: placesCommand,
     init: initCommand,
+    alias: aliasCommand,
   },
 });
 
