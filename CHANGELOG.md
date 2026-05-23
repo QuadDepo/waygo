@@ -6,6 +6,16 @@ Until `1.0.0`, breaking changes may land in minor releases.
 
 ## [Unreleased]
 
+### Added
+- `waygo alias add|list|rm` subcommands to manage place aliases without hand-editing the config file. `alias list` supports `--json`.
+- `placeId:ChIJ...` prefix in any place query (direct CLI arg or alias value) to skip Places API resolution entirely.
+- Local place-ID cache at `~/.config/waygo/cache.json` (mode `0600`). Successful place resolutions are cached by normalized query; subsequent trips reuse them without re-calling Places API.
+- `--no-cache` flag on `waygo trip` to bypass cache reads + writes for a single run.
+- `waygo cache clear` to delete the cache file.
+
+### Fixed
+- 400 responses with body `"API key not valid"` now show the auth-key hint instead of the generic "verify parameters" hint.
+
 ## [0.1.0] — 2026-05-23
 
 ### Added

@@ -68,6 +68,24 @@ waygo places "coffee in Utrecht" --json
 
 Write `~/.config/waygo/config.json` with mode `0600`. Pass `--api-key <KEY>` to skip the prompt, `--force` to overwrite an existing file.
 
+### `waygo alias add|list|rm`
+
+Manage place aliases without hand-editing the config file:
+
+```sh
+waygo alias add home "Damrak 1, Amsterdam"
+waygo alias add work "placeId:ChIJ..."     # pin to a specific Place ID
+waygo alias list
+waygo alias list --json
+waygo alias rm home
+```
+
+Alias keys are case-insensitive. Values can be any string the Places API resolves, or a `placeId:ChIJ...` prefix that skips the lookup.
+
+### `waygo cache clear`
+
+Delete the local place-ID cache (`~/.config/waygo/cache.json`). The cache stores resolved place IDs keyed by the normalized query so repeated trips skip Places API calls. Pass `--no-cache` on `waygo trip` to bypass it for a single run.
+
 ## Config file
 
 `~/.config/waygo/config.json`:
