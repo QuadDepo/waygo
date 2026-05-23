@@ -1,4 +1,4 @@
-import { chmod, mkdir, writeFile } from "node:fs/promises";
+import { chmod, mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -71,6 +71,39 @@ export async function writeWaygoConfig(
   await mkdir(dirname(path), { recursive: true, mode: 0o700 });
   await writeFile(path, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600 });
   await chmod(path, 0o600);
+}
+
+export async function readRawConfig(
+  path: string = HOME_CONFIG_FILE,
+): Promise<WaygoConfig | undefined> {
+  let raw: string;
+  try {
+    raw = await readFile(path, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return undefined;
+    }
+    throw error;
+  }
+
+  try {
+    return JSON.parse(raw) as WaygoConfig;
+  } catch (error) {
+    throw new WaygoConfigError(`Failed to parse ${path}.`, {
+      hint: "The config file is not valid JSON. Fix it or delete it and re-run `waygo init`.",
+      cause: error,
+    });
+  }
+}
+
+export async function mutateHomeConfig(
+  mutate: (config: WaygoConfig) => WaygoConfig,
+  path: string = HOME_CONFIG_FILE,
+): Promise<WaygoConfig> {
+  const current = (await readRawConfig(path)) ?? {};
+  const next = mutate(current);
+  await writeWaygoConfig(next, path);
+  return next;
 }
 
 export function resolveAlias(input: string, aliases: Record<string, string>): string {
