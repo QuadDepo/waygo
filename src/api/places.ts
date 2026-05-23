@@ -1,5 +1,6 @@
 import { googlePost } from "./client";
 
+import { lookupCache, writeCacheEntry } from "../cache";
 import { placesSearchResponseSchema, type PlaceSchema } from "../schemas";
 import type { PlaceCandidate, PlaceResolution } from "../types";
 
@@ -17,6 +18,15 @@ export interface ResolvePlaceOptions {
   query: string;
   fieldMask?: string;
   maxResults?: number;
+  useCache?: boolean;
+}
+
+const PLACE_ID_PREFIX = /^placeId:\s*(.+)$/i;
+
+export function parsePlaceIdPrefix(query: string): string | null {
+  const match = PLACE_ID_PREFIX.exec(query.trim());
+  const id = match?.[1]?.trim();
+  return id ? id : null;
 }
 
 const PLACE_MATCH = {
@@ -139,6 +149,35 @@ export async function searchPlaces(options: SearchPlacesOptions): Promise<PlaceC
 }
 
 export async function tryResolvePlace(options: ResolvePlaceOptions): Promise<PlaceResolution> {
+  const directId = parsePlaceIdPrefix(options.query);
+  if (directId) {
+    return {
+      type: "found",
+      place: {
+        placeId: directId,
+        displayName: `placeId:${directId}`,
+        formattedAddress: `placeId:${directId}`,
+        types: [],
+      },
+    };
+  }
+
+  const useCache = options.useCache !== false;
+  if (useCache) {
+    const cached = await lookupCache(options.query);
+    if (cached) {
+      return {
+        type: "found",
+        place: {
+          placeId: cached.placeId,
+          displayName: cached.displayName,
+          formattedAddress: cached.formattedAddress,
+          types: [],
+        },
+      };
+    }
+  }
+
   const places = await searchPlaces({
     apiKey: options.apiKey,
     query: options.query,
@@ -170,6 +209,9 @@ export async function tryResolvePlace(options: ResolvePlaceOptions): Promise<Pla
       best.score - (second?.score ?? 0) >= PLACE_MATCH.minGap);
 
   if (clearWinner) {
+    if (useCache) {
+      await writeCacheEntry(options.query, best.place);
+    }
     return {
       type: "found",
       place: best.place,

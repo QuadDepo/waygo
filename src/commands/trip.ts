@@ -40,6 +40,7 @@ async function resolvePlaceForTrip(options: {
   initialQuery?: string;
   jsonMode: boolean;
   config: LoadedWaygoConfig;
+  useCache: boolean;
 }): Promise<PlaceCandidate> {
   let query = options.initialQuery;
 
@@ -57,6 +58,7 @@ async function resolvePlaceForTrip(options: {
       query,
       fieldMask: options.config.placesFieldMask,
       maxResults: options.config.placeSearchLimit,
+      useCache: options.useCache,
     });
 
     if (resolved.type === "found") {
@@ -148,9 +150,15 @@ export const tripCommand = defineCommand({
       description: "Output JSON",
       default: false,
     },
+    "no-cache": {
+      type: "boolean",
+      description: "Skip the local place-ID cache for this run",
+      default: false,
+    },
   },
   async run(context) {
     const jsonMode = Boolean(context.args.json);
+    const useCache = !context.args["no-cache"];
     setJsonMode(jsonMode);
 
     const config = await loadWaygoConfig();
@@ -185,6 +193,7 @@ export const tripCommand = defineCommand({
         initialQuery: fromQuery,
         jsonMode,
         config,
+        useCache,
       });
 
       if (loading) loading.message("Resolving destination...");
@@ -194,6 +203,7 @@ export const tripCommand = defineCommand({
         initialQuery: toQuery,
         jsonMode,
         config,
+        useCache,
       });
 
       if (loading) loading.message("Computing transit routes...");
